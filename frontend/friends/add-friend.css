@@ -1,0 +1,41 @@
+/* dialog の最小スタイル（フレンド追加用） */
+dialog#add-friend-dialog {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  max-width: 360px;
+  width: calc(100% - 2rem);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  background: #fff;
+}
+
+/* フォールバック用オーバーレイ（共通） */
+.modal-fallback-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+}
+.modal-fallback-overlay.active {
+  display: flex;
+}
+
+/* フォールバック内部の共通配置 */
+.fallback-inner {
+  width:100%;
+  max-width:360px;
+  padding:1rem;
+  background:#fff;
+  border-radius:8px;
+}
+
+/* ダイアログ内のアクションボタン行 */
+.dialog-actions {
+  display:flex;
+  gap:0.5rem;
+  justify-content:flex-end;
+  margin-top:0.75rem;
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>のりとも | 直近の利用予定</title>
+        <link rel="stylesheet" href="../main.css" />
+        <link rel="stylesheet" href="./homepage.css" />
+        <style>
+            .page-wrap { max-width: 960px; margin: 0 auto; padding: 16px; }
+            .page-title { font-size: 1.5rem; margin: 8px 0 16px; }
+            .section-title { font-size: 1.25rem; margin: 0 0 12px; }
+            .section-desc { color: #555; font-size: 0.95rem; margin: 0 0 16px; }
+            .actions-row { display: flex; gap: 8px; align-items: center; }
+            .btn-link { color: #0b64d8; text-decoration: none; font-weight: 600; }
+            .btn-link:hover { text-decoration: underline; }
+        </style>
+    </head>
+    <body>
+        <main class="page-wrap">
+            <header>
+                <h1 class="page-title">のりとも</h1>
+                <p class="section-desc">乗り合いのコミュニケーションを円滑にすることを目指して</p>
+            </header>
+
+            <!-- 緊急依頼カード -->
+            <section id="urgent-request" aria-label="緊急依頼" style="margin-bottom: 24px;">
+                <div class="urgent-card">
+                    <div class="urgent-card-left">
+                        <div class="urgent-title">緊急で車が必要ですか？</div>
+                        <div class="urgent-desc">車を持っているフレンド全員に通知を送信します</div>
+                    </div>
+                    <div class="urgent-card-right">
+                        <button class="urgent-btn" type="button" aria-label="緊急依頼">
+                            <!-- エクスクラメーション（!）アイコン -->
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M11 6h2v7h-2V6zm0 9h2v2h-2v-2z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+            <!-- 直近の予定 -->
+            <section id="upcoming" aria-labelledby="upcoming-title">
+                <div class="actions-row" style="justify-content: space-between; margin-bottom: 8px;">
+                    <h2 id="upcoming-title" class="section-title">直近の予定</h2>
+                    <a class="btn-link" href="../bookings.html">すべての予約を見る</a>
+                </div>
+                <div id="upcoming-empty" class="upcoming-empty" hidden>
+                    <p>直近の利用予定はありません。<a class="btn-link" href="../index.html">近くの車を探す</a></p>
+                </div>
+                <ul id="upcoming-list" class="upcoming-list" aria-live="polite"></ul>
+            </section>
+        </main>
+
+        <script src="./homepage.js" defer></script>
+    </body>
+</html>

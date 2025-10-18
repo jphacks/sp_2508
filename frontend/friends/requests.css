@@ -1,0 +1,48 @@
+/* 申請確認ダイアログ内のタブ */
+.requests-tabs {
+  display: inline-flex;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.75rem 0;
+}
+.requests-tabs .req-tab {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid #ddd;
+  background: #fafafa;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.requests-tabs .req-tab.active,
+.requests-tabs .req-tab[aria-pressed="true"] {
+  background: #f0f6ff;
+  border-color: #8ab4ff;
+}
+
+/* 申請リスト */
+.requests-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 280px;
+  overflow: auto;
+  border-top: 1px solid #eee;
+  padding-top: 0.5rem;
+}
+.requests-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f3f3;
+}
+.requests-list .name { font-weight:600; }
+.requests-list .meta { font-size:0.9rem; color:#666; }
+
+/* dialog 最小スタイル（requests） */
+dialog#requests-dialog {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  max-width: 480px;
+  width: calc(100% - 2rem);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  background: #fff;
+}
+
+/* フォールバックの内部は .fallback-inner（add-friend.css と共通） */

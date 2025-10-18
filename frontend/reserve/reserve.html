@@ -205,6 +205,8 @@
     <div class="modal-content">
       <form id="reserveForm">
         <h3>依頼を追加</h3>
+        <label>依頼主</label>
+        <input type="text" id="requester" required />
         <label>ドライバー</label>
         <input type="text" id="driver" required />
         <label>日付</label>
@@ -224,7 +226,6 @@
   </div>
 
   <script>
-    // 🔹固定のユーザー名
     const name = "オホーツク";
 
     const tabs = document.querySelectorAll(".tab");
@@ -287,7 +288,7 @@
         card.className = "reservation-card";
         card.innerHTML = `
           <div class="reservation-header">
-            <span>${res.driver}</span>
+            <span>${res.requester} → ${res.driver}</span>
             <span class="status">${statusLabels[res.status]}</span>
           </div>
           <div class="datetime">${res.date}・${res.time}</div>
@@ -326,7 +327,6 @@
         list.appendChild(card);
       }
 
-      // まだ表示されていない場合のメッセージ
       if (lists.request.innerHTML === "") lists.request.innerHTML = "<p>まだ依頼がありません。</p>";
       if (lists.reserve.innerHTML === "") lists.reserve.innerHTML = "<p>まだ予約がありません。</p>";
       if (lists.done.innerHTML === "") lists.done.innerHTML = "<p>完了リストをここに表示します。</p>";
@@ -364,6 +364,7 @@
 
     function isSameReservation(a, b) {
       return (
+        a.requester === b.requester &&
         a.driver === b.driver &&
         a.date === b.date &&
         a.time === b.time &&
@@ -376,6 +377,7 @@
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const newRes = {
+        requester: document.getElementById("requester").value,
         driver: document.getElementById("driver").value,
         date: document.getElementById("date").value,
         time: document.getElementById("time").value,

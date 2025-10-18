@@ -1,0 +1,50 @@
+/* friends ページ固有スタイル */
+.controls { display:flex; gap:8px; margin-bottom:12px; }
+#friend-search { flex:1; padding:8px; font-size:14px; }
+#clear-search { padding:8px 10px; }
+.friend-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
+.friend-item { display:flex; align-items:center; justify-content:space-between; padding:10px; border:1px solid #ddd; border-radius:6px; background:#fff; }
+.friend-info { display:flex; flex-direction:column; gap:2px; }
+.friend-name { font-weight:600; }
+.friend-id { font-size:12px; color:#666; }
+/* トグルスイッチ（簡易） */
+.switch { position:relative; width:46px; height:24px; display:inline-block; }
+.switch input { opacity:0; width:0; height:0; }
+.slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#ccc; transition:.2s; border-radius:24px; }
+.slider:before { position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px; background:white; transition:.2s; border-radius:50%; }
+.switch input:checked + .slider { background:#4caf50; }
+.switch input:checked + .slider:before { transform:translateX(22px); }
+/* 表示切替セグメント */
+.filter-toggle { display:flex; gap:4px; margin:8px 0 12px; align-items:center; }
+.toggle-btn {
+  flex:1;
+  padding:8px 10px;
+  border:1px solid #ccc;
+  background:#fff;
+  color:#333;
+  font-size:14px;
+  border-radius:6px;
+  cursor:pointer;
+  text-align:center;
+}
+.toggle-btn.active, .toggle-btn[aria-pressed="true"] {
+  background:#0078d4;
+  color:#fff;
+  border-color:#0078d4;
+}
+.toggle-btn:focus { outline:2px solid rgba(0,120,212,0.25); }
+/* フレンド名横のバッジ */
+.driver-badge {
+  display:inline-block;
+  margin-left:8px;
+  padding:2px 8px;
+  font-size:12px;
+  line-height:1;
+  border-radius:12px;
+  color:#fff;
+  background:#4caf50; /* ドライバー色（デフォルト） */
+  vertical-align:middle;
+}
+.driver-badge.off {
+  background:#888; /* 非ドライバー色 */
+}

@@ -1,0 +1,43 @@
+/* スマホ下部固定ナビ */
+.mobile-bottom-nav {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	height: 60px;
+	padding: env(safe-area-inset-bottom) 0;
+	background: #fff;
+	border-top: 1px solid #e0e0e0;
+	box-shadow: 0 -1px 4px rgba(0,0,0,0.06);
+	z-index: 1000;
+}
+.mobile-bottom-nav a.nav-btn {
+	flex: 1;
+	text-align: center;
+	text-decoration: none;
+	color: #444;
+	padding: 6px 0;
+	font-size: 12px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+.mobile-bottom-nav a.nav-btn .icon {
+	width: 24px;
+	height: 24px;
+	margin-bottom: 2px;
+	display: inline-block;
+	fill: currentColor;
+}
+.mobile-bottom-nav a.nav-btn[aria-current="page"],
+.mobile-bottom-nav a.nav-btn.active {
+	color: #0078d4; /* アクティブ色 */
+}
+/* メインコンテンツがボトムナビに隠れないように余白を確保 */
+@media (max-width: 800px) {
+	main { padding-bottom: 80px; }
+}

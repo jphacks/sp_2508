@@ -1,0 +1,103 @@
+/* 直近の利用予定（homepage用） */
+.upcoming-list {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 960px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.upcoming-empty {
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+  padding: 16px;
+  border-radius: 10px;
+}
+.trip-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.trip-time { color: #334155; margin-top: 6px; font-size: 0.95rem; }
+.trip-route { margin: 8px 0 0 0; font-size: 1.05rem; font-weight: 500; color: #222; }
+.trip-route .arrow { margin: 0 6px; color: #888; }
+.trip-driver { margin-top: 6px; color: #475569; font-size: 0.97rem; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; line-height: 1.6; }
+.badge-success { background: #e8f7ef; color: #107c41; border: 1px solid #b7e4c4; }
+.badge-warn { background: #fff7ed; color: #b45309; border: 1px solid #fed7aa; }
+.badge-muted { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+/* 緊急依頼カード */
+.urgent-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff5f5;
+  border: 1.5px solid #ffb4b4;
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 0;
+  box-shadow: 0 1px 4px rgba(255,0,0,0.04);
+  gap: 16px;
+}
+.urgent-card-left {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+.urgent-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #b91c1c;
+  margin-bottom: 4px;
+}
+.urgent-desc {
+  font-size: 0.97rem;
+  color: #b91c1c;
+  opacity: 0.85;
+}
+.urgent-card-right {
+  display: flex;
+  align-items: center;
+}
+.urgent-btn {
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  width: 72px; /* larger */
+  height: 72px; /* larger */
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(239,68,68,0.14);
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.urgent-btn svg { width: 32px; height: 32px; display: block; fill: #fff; }
+.urgent-btn:active { transform: scale(0.98); }
+.urgent-btn:hover, .urgent-btn:focus {
+  background: #dc2626;
+  outline: none;
+}
+@media (max-width: 600px) {
+  .urgent-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px 8px;
+    gap: 10px;
+  }
+  .urgent-card-right {
+    justify-content: flex-end;
+  }
+  /* モバイルではアイコンボタンをやや大きく */
+  .urgent-btn {
+    width: 64px;
+    height: 64px;
+  }
+}

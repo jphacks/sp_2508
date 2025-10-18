@@ -63,3 +63,41 @@
   align-items:center;
   gap:0.5rem;
 }
+
+.ti{
+   padding: 0.5em 1em;
+    margin: 2em 0;
+    margin-bottom: 10px;
+    color: #232323;
+    background: #e8ffef;
+    border-left: solid 10px #6eff9c;
+}
+
+.ti h2{
+   margin: 0; 
+    padding: 0;
+}
+
+.friend-item{
+  background: linear-gradient(to left, rgb(186, 255, 186), white);
+}
+
+.friend-request{
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 15px;
+  margin-top: 20px;
+}
+
+.add-friend{
+border: solid 2px rgb(55, 169, 55);
+border-radius: 15px;
+background-color: white;
+margin-top: 20px;
+color: rgb(50, 143, 50);
+}
+
+.actions button:hover{
+  background-color: rgb(217, 217, 217);
+}

@@ -33,8 +33,9 @@
     },
   ];
 
-  const listEl = document.getElementById("upcoming-list");
-  const emptyEl = document.getElementById("upcoming-empty");
+  // DOM elements will be looked up during init to avoid timing issues
+  let listEl = null;
+  let emptyEl = null;
 
   function loadTrips() {
     try {
@@ -126,6 +127,13 @@
   }
 
   function init() {
+    // lookup DOM nodes here (safer when script timing changes)
+    listEl = document.getElementById("upcoming-list");
+    emptyEl = document.getElementById("upcoming-empty");
+    if (!listEl || !emptyEl) {
+      console.warn('home.js: required DOM elements not found (upcoming-list/upcoming-empty). Aborting render.');
+      return;
+    }
     const now = new Date();
     const trips = loadTrips()
       .filter((t) => {

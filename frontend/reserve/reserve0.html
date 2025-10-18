@@ -59,6 +59,11 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
 
+    .avatar {
+      font-size: 2rem;
+      margin-right: 1rem;
+    }
+
     .reservation-header {
       display: flex;
       justify-content: space-between;
@@ -69,6 +74,10 @@
     .datetime, .route {
       color: #555;
       margin-bottom: 0.3rem;
+    }
+
+    .pin {
+      margin-right: 0.3rem;
     }
 
     .status {
@@ -224,9 +233,6 @@
   </div>
 
   <script>
-    // 🔹固定のユーザー名
-    const name = "オホーツク";
-
     const tabs = document.querySelectorAll(".tab");
     const contents = document.querySelectorAll(".tab-content");
 
@@ -273,9 +279,7 @@
     function renderReservations(reservations) {
       const lists = {
         request: document.getElementById("requestList"),
-        reserve: document.getElementById("reserveList"),
-        done: document.getElementById("done"),
-        cancel: document.getElementById("cancel")
+        reserve: document.getElementById("reserveList")
       };
       Object.values(lists).forEach(list => list.innerHTML = "");
 
@@ -286,51 +290,37 @@
         const card = document.createElement("div");
         card.className = "reservation-card";
         card.innerHTML = `
-          <div class="reservation-header">
-            <span>${res.driver}</span>
-            <span class="status">${statusLabels[res.status]}</span>
+          <div class="avatar">👤</div>
+          <div class="reservation-content">
+            <div class="reservation-header">
+              <span>${res.driver}</span>
+              <span class="status">${statusLabels[res.status]}</span>
+            </div>
+            <div class="datetime">${res.date}・${res.time}</div>
+            <div class="route"><span class="pin">📍</span>${res.from} → ${res.to}</div>
           </div>
-          <div class="datetime">${res.date}・${res.time}</div>
-          <div class="route">📍 ${res.from} → ${res.to}</div>
         `;
 
-        if (res.driver === name) {
-          const buttonGroup = document.createElement("div");
-          buttonGroup.className = "button-group";
+        const buttonGroup = document.createElement("div");
+        buttonGroup.className = "button-group";
 
-          if (res.status === "request") {
-            const moveBtn = document.createElement("button");
-            moveBtn.className = "move-button";
-            moveBtn.textContent = "予約に移動";
-            moveBtn.onclick = () => moveToReserve(res);
-            buttonGroup.appendChild(moveBtn);
-          }
-
-          if (res.status === "reserve") {
-            const doneBtn = document.createElement("button");
-            doneBtn.className = "move-button";
-            doneBtn.textContent = "完了";
-            doneBtn.onclick = () => moveToDone(res);
-            buttonGroup.appendChild(doneBtn);
-          }
-
-          const deleteBtn = document.createElement("button");
-          deleteBtn.className = "delete-button";
-          deleteBtn.textContent = "削除";
-          deleteBtn.onclick = () => deleteReservation(res);
-          buttonGroup.appendChild(deleteBtn);
-
-          card.appendChild(buttonGroup);
+        if (res.status === "request") {
+          const moveBtn = document.createElement("button");
+          moveBtn.className = "move-button";
+          moveBtn.textContent = "予約に移動";
+          moveBtn.onclick = () => moveToReserve(res);
+          buttonGroup.appendChild(moveBtn);
         }
 
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "delete-button";
+        deleteBtn.textContent = "削除";
+        deleteBtn.onclick = () => deleteReservation(res);
+        buttonGroup.appendChild(deleteBtn);
+
+        card.appendChild(buttonGroup);
         list.appendChild(card);
       }
-
-      // まだ表示されていない場合のメッセージ
-      if (lists.request.innerHTML === "") lists.request.innerHTML = "<p>まだ依頼がありません。</p>";
-      if (lists.reserve.innerHTML === "") lists.reserve.innerHTML = "<p>まだ予約がありません。</p>";
-      if (lists.done.innerHTML === "") lists.done.innerHTML = "<p>完了リストをここに表示します。</p>";
-      if (lists.cancel.innerHTML === "") lists.cancel.innerHTML = "<p>キャンセルリストをここに表示します。</p>";
     }
 
     function saveReservations(reservations) {
@@ -341,15 +331,6 @@
       const reservations = JSON.parse(localStorage.getItem("reservations") || "[]");
       const updated = reservations.map(r =>
         isSameReservation(r, target) ? { ...r, status: "reserve" } : r
-      );
-      saveReservations(updated);
-      renderReservations(updated);
-    }
-
-    function moveToDone(target) {
-      const reservations = JSON.parse(localStorage.getItem("reservations") || "[]");
-      const updated = reservations.map(r =>
-        isSameReservation(r, target) ? { ...r, status: "done" } : r
       );
       saveReservations(updated);
       renderReservations(updated);

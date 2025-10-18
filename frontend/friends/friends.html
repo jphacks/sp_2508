@@ -13,8 +13,9 @@
     <link rel="stylesheet" href="../main.css" />
     <!-- ページ固有スタイルを分離 -->
     <link rel="stylesheet" href="friends.css" />
-    <!-- 必要なら共通スクリプトをここに追加 -->
-    <script defer src="main.js"></script>
+    <!-- ポップアップ用スタイルを分離 -->
+    <link rel="stylesheet" href="add-friend.css" />
+    <link rel="stylesheet" href="requests.css" />
   </head>
   <body>
     <!-- 共通ヘッダー（全ページに含める） -->
@@ -28,7 +29,22 @@
     <main id="content" role="main">
       <!-- ...existing code... -->
       <section id="friends-section">
-        <h2>フレンド一覧</h2>
+        <div class="title-row">
+          <h2>フレンド一覧</h2>
+          <!-- 右側のボタン群 -->
+          <div class="actions">
+            <button id="check-requests" type="button" aria-label="フレンド申請確認">フレンド申請確認</button>
+            <button
+              id="open-add-friend"
+              class="add-friend"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="add-friend-dialog"
+            >
+              フレンド追加
+            </button>
+          </div>
+        </div>
 
         <div class="controls" role="search" aria-label="フレンド検索">
           <input id="friend-search" type="search" placeholder="ID または 名前で検索" aria-label="ID または 名前で検索" />
@@ -58,6 +74,67 @@
             <!-- ドライバー判定は読み取り専用のバッジで表示（切替スイッチは廃止） -->
           </li>
         </template>
+        <!-- ポップアップフォーム（入力欄 + 送信/キャンセル） -->
+        <dialog id="add-friend-dialog" aria-labelledby="add-friend-title" aria-modal="true">
+          <form method="dialog" id="add-friend-form">
+            <h3 id="add-friend-title">フレンド申請</h3>
+            <label for="new-friend-id">フレンドID / 学内メール</label>
+            <input id="new-friend-id" name="friendId" type="text" inputmode="text" required />
+            <div class="dialog-actions">
+              <button type="button" id="cancel-add-friend">キャンセル</button>
+              <button type="submit" id="submit-add-friend">送信</button>
+            </div>
+          </form>
+        </dialog>
+        <!-- フォールバックオーバーレイ（dialog 未対応用） -->
+        <div id="modal-fallback-overlay" class="modal-fallback-overlay" aria-hidden="true">
+          <div class="fallback-inner" role="dialog" aria-modal="true" aria-labelledby="add-friend-title">
+            <!-- 内容はダイアログフォームと同一。JSで値を同期するため空の容器を用意 -->
+            <form id="add-friend-form-fallback">
+              <h3 id="add-friend-title-fb" class="visually-hidden">フレンド申請</h3>
+              <label for="new-friend-id-fb" class="visually-hidden">フレンドID</label>
+              <input id="new-friend-id-fb" name="friendIdFb" type="text" inputmode="text" required />
+              <div class="dialog-actions">
+                <button type="button" id="cancel-add-friend-fb">キャンセル</button>
+                <button type="button" id="submit-add-friend-fb">送信</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- 申請確認ダイアログ（タブ切替：申請中 / 被申請中） -->
+        <dialog id="requests-dialog" aria-labelledby="requests-title" aria-modal="true">
+          <div class="requests-dialog-inner">
+            <h3 id="requests-title">フレンド申請一覧</h3>
+            <div class="requests-tabs" role="tablist" aria-label="申請タブ">
+              <button class="req-tab active" data-view="sent" aria-pressed="true" role="tab">申請中</button>
+              <button class="req-tab" data-view="received" aria-pressed="false" role="tab">被申請中</button>
+            </div>
+            <ul id="requests-list" class="requests-list" role="list" aria-live="polite">
+              <!-- JS で描画 -->
+            </ul>
+            <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:.5rem;">
+              <button type="button" id="close-requests">閉じる</button>
+            </div>
+          </div>
+        </dialog>
+
+        <!-- 申請確認フォールバックオーバーレイ（dialog 未対応時） -->
+        <div id="requests-fallback-overlay" class="modal-fallback-overlay" aria-hidden="true">
+          <div class="fallback-inner" role="dialog" aria-modal="true" aria-labelledby="requests-title">
+            <h3 id="requests-title-fb" class="visually-hidden">フレンド申請一覧</h3>
+            <div class="requests-tabs" role="tablist" aria-label="申請タブ">
+              <button class="req-tab active" data-view="sent" aria-pressed="true">申請中</button>
+              <button class="req-tab" data-view="received" aria-pressed="false">被申請中</button>
+            </div>
+            <ul id="requests-list-fb" class="requests-list" role="list" aria-live="polite">
+              <!-- JS で描画 -->
+            </ul>
+            <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:.5rem;">
+              <button type="button" id="close-requests-fb">閉じる</button>
+            </div>
+          </div>
+        </div>
       </section>
       <!-- ...existing code... -->
     </main>
@@ -72,7 +149,7 @@
       >
         <a
           class="nav-btn"
-          href="index.html"
+          href="../index.html"
           data-key="home"
           aria-label="ホーム"
         >
@@ -106,7 +183,7 @@
         </a>
         <a
           class="nav-btn"
-          href="bookings.html"
+          href="../bookings/bookings.html"
           data-key="bookings"
           aria-label="予約"
         >
@@ -125,7 +202,7 @@
         </a>
         <a
           class="nav-btn"
-          href="profile.html"
+          href="../profile/profile.html"
           data-key="profile"
           aria-label="プロフィール"
         >
@@ -147,55 +224,10 @@
     <script>
       // 年を自動挿入
       document.getElementById("year")?.textContent = new Date().getFullYear();
-
-      // 現在のパスに応じて該当ボタンをアクティブ化
-      (function () {
-        const mapping = [
-          { key: "home", paths: ["/", "/index.html"] },
-          { key: "friends", paths: ["/friends.html", "/friends", "/friends/"] },
-          {
-            key: "bookings",
-            paths: ["/bookings.html", "/bookings", "/bookings/", "/rides.html"],
-          },
-          {
-            key: "profile",
-            paths: ["/profile.html", "/profile", "/profile/", "/post.html"],
-          },
-        ];
-        const pathname = location.pathname.replace(/\\/g, "/");
-        const navBtns = document.querySelectorAll(
-          ".mobile-bottom-nav a.nav-btn"
-        );
-        navBtns.forEach((btn) => btn.classList.remove("active"));
-        let matched = false;
-        mapping.forEach((m) => {
-          m.paths.forEach((p) => {
-            if (
-              !matched &&
-              (pathname.endsWith(p) ||
-                pathname === p ||
-                (p === "/" && (pathname === "" || pathname === "/")))
-            ) {
-              const el = document.querySelector(
-                '.mobile-bottom-nav a.nav-btn[data-key="' + m.key + '"]'
-              );
-              if (el) {
-                el.classList.add("active");
-                el.setAttribute("aria-current", "page");
-                matched = true;
-              }
-            }
-          });
-        });
-        // デフォルトでホームがアクティブ
-        if (!matched) {
-          const homeEl = document.querySelector(
-            '.mobile-bottom-nav a.nav-btn[data-key="home"]'
-          );
-          if (homeEl) homeEl.classList.add("active");
-        }
-      })();
     </script>
-    <script defer src="friends.js"></script>
-  </body>
-</html>
+    <!-- ポップアップ処理を機能ごとに分割 -->
+    <script defer src="add-friend.js"></script>
+    <script defer src="requests.js"></script>
+     <script defer src="friends.js"></script>
+   </body>
+ </html>

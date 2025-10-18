@@ -1,6 +1,7 @@
 /* friends ページ固有スタイル */
 .controls { display:flex; gap:8px; margin-bottom:12px; }
 #friend-search { flex:1; padding:8px; font-size:14px; }
+#open-add-friend, #check-requests { padding:8px 10px; }
 #clear-search { padding:8px 10px; }
 .friend-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
 .friend-item { display:flex; align-items:center; justify-content:space-between; padding:10px; border:1px solid #ddd; border-radius:6px; background:#fff; }
@@ -47,4 +48,18 @@
 }
 .driver-badge.off {
   background:#888; /* 非ドライバー色 */
+}
+
+/* ページレベル: タイトル行とアクション */
+.title-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:0.75rem;
+  margin-bottom:0.75rem;
+}
+.title-row .actions {
+  display:inline-flex;
+  align-items:center;
+  gap:0.5rem;
 }

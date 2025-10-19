@@ -13,7 +13,7 @@
     }
 
     header {
-      background-color: #4b6cb7;
+      background-color: #4bb74f;
       color: white;
       padding: 1rem;
       text-align: center;
@@ -44,8 +44,8 @@
     }
 
     .tab.active {
-      border-bottom: 3px solid #4b6cb7;
-      color: #4b6cb7;
+      border-bottom: 3px solid #4bb752;
+      color: #3eb165;
       font-weight: bold;
     }
 
@@ -82,7 +82,7 @@
 
     .status {
       font-size: 0.9rem;
-      color: #4b6cb7;
+      color: #4bb754;
     }
 
     .button-group {
@@ -101,11 +101,11 @@
     }
 
     .move-button {
-      background-color: #4b6cb7;
+      background-color: #4bb766;
     }
 
     .move-button:hover {
-      background-color: #3c5aa6;
+      background-color: #3ca676;
     }
 
     .delete-button {
@@ -121,7 +121,7 @@
       width: 90%;
       max-width: 400px;
       margin: 1.5rem auto 1rem auto;
-      background-color: #4b6cb7;
+      background-color: #4bb762;
       color: white;
       padding: 1rem;
       border: none;
@@ -180,9 +180,34 @@
     }
 
     .submit-btn {
-      background-color: #4b6cb7;
+      background-color: #4bb771;
       color: white;
     }
+
+    .reque{
+      font-size: 1.2rem;
+      margin-left: 7px;
+    }
+
+    .rese{
+      font-size: 1.2rem;
+      margin-left: 7px;
+    }
+
+    .ok{
+      font-size: 1.2rem;
+      margin-left: 7px;
+    }
+
+    .can{
+      font-size: 1.2rem;
+      margin-left: 30px;
+    }
+
+    .reservation-card{
+      background-color:#ececec;
+    }
+
   </style>
 </head>
 <body>
@@ -191,10 +216,10 @@
   <div id="userInfo">ユーザー情報を読み込み中...</div>
 
   <div class="tabs">
-    <div class="tab active" data-tab="request">依頼</div>
-    <div class="tab" data-tab="reserve">予約</div>
-    <div class="tab" data-tab="done">完了</div>
-    <div class="tab" data-tab="cancel">キャンセル</div>
+    <div class="tab active" data-tab="request"><spnn class="reque">🚗</spnn><br>依頼</div>
+    <div class="tab" data-tab="reserve"><spnn class="rese">📃</spnn><br>予約</div>
+    <div class="tab" data-tab="done"><spnn class="ok">✅</spnn><br>完了</div>
+    <div class="tab" data-tab="cancel"><spnn class="can">✖️</spnn><br>キャンセル</div>
   </div>
 
   <button id="reserveButton">＋ 新しい依頼を追加</button>

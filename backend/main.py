@@ -42,7 +42,7 @@ async def root(user: dict):
     受理確認後はリクエストをリセットします（どちらも同様）。
     """
     # global は関数内で変数を参照・更新する前に宣言しておく
-    global t_flag, k_flag, y_flag
+    global t_flag, k_flag, y_flag, current_request
 
     uid = user.get("id")
     car = bool(user.get("car", False))
@@ -54,33 +54,31 @@ async def root(user: dict):
                 "waiting": True,
                 "type": current_request["type"],
                 "user_id": current_request["user_id"],
-                "t_flag": t_flag,
-                "k_flag": k_flag,
-                "y_flag": y_flag,
             }
         if current_request["type"] == "yoyaku":
             return {
                 "waiting": False,
-                "type": current_request["type"],
+                "type": "yoyaku",
                 "user_id": current_request["user_id"],
-                "t_flag": t_flag,
-                "k_flag": k_flag,
-                "y_flag": y_flag,
             }
         return {"waiting": False, "type": None}
     else:
         # 要請者は自分の要請が受理されたか確認する
         if current_request["user_id"] == uid:
-            if current_request["accepted_by"]:
+            # 受理済みの場合は accepted を返して状態をリセット
+            if current_request.get("accepted_by"):
                 accepted_by = current_request["accepted_by"]
-                # リクエストとフラグをリセット
+                # リクエストをクリアして処理を再開できるようにする
                 current_request.update({"type": None, "user_id": None, "waiting": False, "accepted_by": None})
-                t_flag, k_flag, y_flag = False, False, False
+                t_flag = False
+                k_flag = False
+                y_flag = False
                 return {"status": "accepted", "accepted_by": accepted_by}
-            # 自分の要請があるが未受理：緊急なら waiting、予約なら pending を返す
-            if current_request["type"] == "kinkyu" and current_request["waiting"]:
+            # 緊急でドライバー応答待ち
+            if current_request.get("waiting"):
                 return {"status": "waiting"}
-            if current_request["type"] == "yoyaku":
+            # 予約は承認待ち（pending）
+            if current_request.get("type") == "yoyaku":
                 return {"status": "pending"}
         # 自分の要請がない（または別の要請が流れている）
         return {"status": "none"}

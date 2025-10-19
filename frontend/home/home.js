@@ -37,6 +37,21 @@
   // DOM elements will be looked up during init to avoid timing issues
   let listEl = null;
   let emptyEl = null;
+  let urgentStatusEl = null;
+  let driverPollHandle = null; // ドライバーポーリングハンドルをモジュールスコープへ
+  let requesterPollHandle = null;
+
+  // localStorage から profile を安全に取得するユーティリティ
+  function getStoredProfile() {
+    try {
+      const raw = localStorage.getItem("userProfile");
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) {
+      console.error("getStoredProfile parse error", e);
+      return null;
+    }
+  }
 
   function loadTrips() {
     try {
@@ -128,13 +143,32 @@
   }
 
   function init() {
+    console.log('home.js init');
     // lookup DOM nodes here (safer when script timing changes)
     listEl = document.getElementById("upcoming-list");
     emptyEl = document.getElementById("upcoming-empty");
+    urgentStatusEl = document.getElementById("urgentStatus");
     if (!listEl || !emptyEl) {
       console.warn('home.js: required DOM elements not found (upcoming-list/upcoming-empty). Aborting render.');
       return;
     }
+    // driver notification 要素がない場合は作る（UIが壊れているケースへのフォールバック）
+    let notifEl = document.getElementById('driverNotification');
+    if (!notifEl) {
+      console.warn('driverNotification element not found — creating fallback element');
+      notifEl = document.createElement('div');
+      notifEl.id = 'driverNotification';
+      notifEl.className = 'driver-notification';
+      notifEl.style.display = 'none';
+      notifEl.innerHTML = '<div class="msg" id="driverNotificationMsg">緊急要請を受信しました</div>' +
+                          '<div class="controls"><button id="driverAcceptBtn" class="accept">受ける</button>' +
+                          '<button id="driverDeclineBtn" class="decline">無視</button></div>';
+      document.body.appendChild(notifEl);
+    }
+    const notifMsg = document.getElementById('driverNotificationMsg');
+    const acceptBtn = document.getElementById('driverAcceptBtn');
+    const declineBtn = document.getElementById('driverDeclineBtn');
+
     const now = new Date();
     const trips = loadTrips()
       .filter((t) => {
@@ -192,52 +226,106 @@
           if (!res.ok) {
             alert('送信エラー: HTTP ' + res.status + (json && json.error ? ' – ' + json.error : ''));
           } else {
-            alert('緊急要請を送信しました。要請者ID: ' + (json?.user_id || profile.id));
-          }
-        } catch (e) {
-          console.error('fetch failed', e);
-          alert('送信に失敗しました（ネットワークエラー）');
-        } finally {
-          urgentBtn.disabled = false;
-          urgentBtn.textContent = originalText;
-        }
-      });
-    }
+            // UI に要請送信済み / 応答待ちを表示（要請者側）
+            if (urgentStatusEl) {
+              urgentStatusEl.hidden = false;
+              urgentStatusEl.classList.remove('accepted');
+              urgentStatusEl.classList.add('waiting');
+              urgentStatusEl.textContent = '要請送信済み — ドライバーの応答を待っています...';
+            }
+             // 要請者として受理確認用ポーリングを開始
+             if (requesterPollHandle) clearInterval(requesterPollHandle);
+             requesterPollHandle = setInterval(async () => {
+               try {
+                 const r = await fetch(API_BASE + '/', {
+                   method: 'POST',
+                   headers: { 'Content-Type': 'application/json' },
+                   body: JSON.stringify({ id: profile.id, car: false }),
+                 });
+                 if (!r.ok) return;
+                 const body = await r.json().catch(() => null);
+                 if (!body) return;
+                 if (body.status === 'accepted' || body.accepted_by) {
+                   const accepter = body.accepted_by || body.acceptedBy || '不明';
+                   // 要請者画面の緊急カード内に受理メッセージを表示
+                   if (urgentStatusEl) {
+                     urgentStatusEl.hidden = false;
+                     urgentStatusEl.classList.remove('waiting');
+                     urgentStatusEl.classList.add('accepted');
+                     urgentStatusEl.textContent = `${accepter}さんに受理されました！！`;
+                   }
+                   clearInterval(requesterPollHandle);
+                   requesterPollHandle = null;
+                 } else if (body.status === 'waiting') {
+                   // waiting のまま（UI は既に waiting 表示）
+                   console.log('要請者: ドライバー応答待ち...');
+                 } else if (body.status === 'pending') {
+                   console.log('要請者: 予約は承認待ちです...');
+                 }
+               } catch (e) {
+                 console.warn('requester poll failed', e);
+               }
+             }, 2000);
+           }
+         } catch (e) {
+           console.error('fetch failed', e);
+           alert('送信に失敗しました（ネットワークエラー）');
+         } finally {
+           urgentBtn.disabled = false;
+           urgentBtn.textContent = originalText;
+         }
+       });
+     }
     // ----- ここまで -----
+    // 画面離脱などでポーリングが残らないようにする
+    window.addEventListener('beforeunload', () => {
+      if (requesterPollHandle) {
+        clearInterval(requesterPollHandle);
+        requesterPollHandle = null;
+      }
+    });
 
     // ----- 追加: ドライバーポーリング（localStorage の userProfile を参照） -----
-    let driverPollHandle = null;
-    const notifEl = document.getElementById('driverNotification');
-    const notifMsg = document.getElementById('driverNotificationMsg');
-    const acceptBtn = document.getElementById('driverAcceptBtn');
-    const declineBtn = document.getElementById('driverDeclineBtn');
-
-    function getStoredProfile() {
-      try {
-        const raw = localStorage.getItem('userProfile');
-        if (!raw) return null;
-        return JSON.parse(raw);
-      } catch (e) {
-        return null;
+    // (driverPollHandle はモジュールスコープにある)
+    function pollAsDriver(profile) {
+      if (!profile || !profile.car) {
+        console.log('pollAsDriver: profile missing or not driver', profile);
+        return;
       }
-    }
-
-    async function pollAsDriver(profile) {
-      if (!profile || !profile.car) return;
-      if (driverPollHandle) clearInterval(driverPollHandle);
+      if (driverPollHandle) {
+        clearInterval(driverPollHandle);
+        driverPollHandle = null;
+      }
+      console.log('pollAsDriver: start polling as driver for', profile.id);
       // 初回即時実行して以降数秒ごとにポーリング
       async function check() {
         try {
+          console.log('driver poll -> sending POST / with', { id: profile.id, car: true });
           const res = await fetch(API_BASE + '/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: profile.id, car: true }),
           });
-          if (!res.ok) return;
-          const j = await res.json().catch(() => null);
+          console.log('driver poll -> response status', res.status);
+          if (!res.ok) {
+            console.warn('driver poll -> non-ok response', res.status);
+            return;
+          }
+          const j = await res.json().catch((e) => {
+            console.warn('driver poll -> invalid json', e);
+            return null;
+          });
+          console.log('driver poll -> json', j);
           if (j && j.waiting) {
             // 緊急要請が待機中
             showDriverNotification(j.user_id, j.type);
+          } else {
+            // no waiting: hide notification if visible
+            if (notifEl && notifEl.classList && notifEl.classList.contains('show')) {
+              console.log('driver poll -> no waiting, hiding notification');
+              notifEl.classList.remove('show');
+              notifEl.style.display = 'none';
+            }
           }
         } catch (e) {
           console.warn('driver poll failed', e);
@@ -248,19 +336,31 @@
     }
 
     function showDriverNotification(requesterId, type) {
-      if (!notifEl || notifEl.classList.contains('show')) return;
+      if (!notifEl) return;
+      console.log('showDriverNotification', requesterId, type);
       notifMsg.textContent = requesterId ? `緊急要請: ${requesterId} さんが車を必要としています。受けますか？` : '緊急要請を受信しました。受けますか？';
+      // ボタンを確実に有効化して表示
+      if (acceptBtn) { acceptBtn.disabled = false; acceptBtn.textContent = '受ける'; }
+      if (declineBtn) { declineBtn.disabled = false; declineBtn.textContent = '無視'; }
       notifEl.classList.add('show');
+      notifEl.style.display = 'flex';
     }
 
+    // 通知を閉じる（accept/decline 共通で使用）
     function hideDriverNotification() {
       if (!notifEl) return;
       notifEl.classList.remove('show');
+      notifEl.style.display = 'none';
+      // ボタン状態リセット
+      if (acceptBtn) { acceptBtn.disabled = false; acceptBtn.textContent = '受ける'; }
+      if (declineBtn) { declineBtn.disabled = false; declineBtn.textContent = '無視'; }
+      // （必要なら通知元 user_id をクリアする等の処理をここに追加）
     }
 
     // 受理ボタン: /accept/ を叩く
     if (acceptBtn) {
       acceptBtn.addEventListener('click', async () => {
+        // ここで profile を必ず取得する（未定義参照を防ぐ）
         const profile = getStoredProfile();
         if (!profile || !profile.car) {
           alert('ドライバープロフィールが見つかりません。プロフィールで car=true を設定してください。');
@@ -268,59 +368,75 @@
         }
         acceptBtn.disabled = true;
         acceptBtn.textContent = '受理中…';
+        // 受理するときは要請中のユーザー id を渡すのが望ましいが、
+        // サーバ実装に合わせて driver id だけ送る形にしている。
         try {
+          console.log('accept -> sending POST /accept/ with', { id: profile.id, car: true });
           const res = await fetch(API_BASE + '/accept/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: profile.id, car: true }),
           });
           const j = await res.json().catch(() => null);
+          console.log('accept -> response', res.status, j);
           if (!res.ok) {
             alert('受理エラー: HTTP ' + res.status + (j && j.error ? ' – ' + j.error : ''));
           } else {
-            alert('受理しました。要請者: ' + (j?.for_user || '不明'));
+            // 成功時は通知を消す
+            if (j && j.for_user) {
+              console.log('accepted for', j.for_user);
+            }
             hideDriverNotification();
           }
         } catch (e) {
-          console.error('accept failed', e);
+          console.error('accept fetch failed', e);
           alert('受理に失敗しました（ネットワークエラー）');
         } finally {
+          // ボタン状態を戻す（UI が閉じられれば意味はないが安全処理）
           acceptBtn.disabled = false;
           acceptBtn.textContent = '受ける';
         }
       });
     }
-
+    else {
+      console.warn('driverAcceptBtn not found');
+    }
     if (declineBtn) {
       declineBtn.addEventListener('click', () => {
+        // 単に閉じる。押せない場合は disabled 状態を解除してみる
+        declineBtn.disabled = false;
         hideDriverNotification();
       });
+    }
+    else {
+      console.warn('driverDeclineBtn not found');
     }
 
     // ページ初期化時に localStorage を見てドライバーモードならポーリング開始
     const initialProfile = getStoredProfile();
+    console.log('initialProfile', initialProfile);
     if (initialProfile && initialProfile.car) {
       pollAsDriver(initialProfile);
+    } else {
+      console.log('not driver at init; will listen to storage events');
     }
-
-    // localStorage の変化を監視して動的に切り替え（別タブで変更されたとき対応）
-    window.addEventListener('storage', (ev) => {
-      if (ev.key !== 'userProfile') return;
-      const p = getStoredProfile();
-      if (p && p.car) {
-        pollAsDriver(p);
-      } else {
-        if (driverPollHandle) {
-          clearInterval(driverPollHandle);
-          driverPollHandle = null;
-        }
-        hideDriverNotification();
-      }
-    });
+     window.addEventListener('storage', (ev) => {
+       if (ev.key !== 'userProfile') return;
+       const p = getStoredProfile();
+       if (p && p.car) {
+         pollAsDriver(p);
+       } else {
+         if (driverPollHandle) {
+           clearInterval(driverPollHandle);
+           driverPollHandle = null;
+         }
+         hideDriverNotification();
+       }
+     });
     // ----- ドライバーポーリングここまで -----
-
-  }
-  
-  // 初期化
-  document.addEventListener("DOMContentLoaded", init);
+ 
+   }
+   
+   // 初期化
+   document.addEventListener("DOMContentLoaded", init);
 })();

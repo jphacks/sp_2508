@@ -83,6 +83,23 @@
         color: #111;
         border: 1px solid #ddd;
       }
+      .urgent-status {
+        margin-top: 8px;
+        font-weight: 700;
+        color: #0b8aee;
+        background: rgba(11, 138, 238, 0.06);
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+      }
+      .urgent-status.accepted {
+        color: #0bd812;
+        background: rgba(11, 216, 18, 0.06);
+      }
+      .urgent-status.waiting {
+        color: #ff8a00;
+        background: rgba(255, 138, 0, 0.06);
+      }
     </style>
   </head>
   <body>
@@ -100,6 +117,7 @@
         class="driver-notification"
         role="dialog"
         aria-live="polite"
+        style="display:none;"
       >
         <div class="msg" id="driverNotificationMsg">緊急要請を受信しました</div>
         <div class="controls">
@@ -112,7 +130,7 @@
       <section
         id="urgent-request"
         aria-label="緊急依頼"
-        style="margin-bottom: 24px"
+        style="margin-bottom: 24px;"
       >
         <div class="urgent-card">
           <div class="urgent-card-left">
@@ -128,6 +146,8 @@
                 <path d="M11 6h2v7h-2V6zm0 9h2v2h-2v-2z" />
               </svg>
             </button>
+            <!-- 追加: 要請状態表示（要請者側に受理状況を見せる） -->
+            <div id="urgentStatus" class="urgent-status" aria-live="polite" hidden></div>
           </div>
         </div>
       </section>

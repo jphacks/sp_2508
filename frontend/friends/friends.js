@@ -7,7 +7,8 @@
      { id: "u001", name: "佐藤 太郎", isDriver: true },
      { id: "u002", name: "鈴木 花子", isDriver: false },
      { id: "u003", name: "田中 次郎", isDriver: true },
-     { id: "u004", name: "伊藤 三子", isDriver: false }
+     { id: "u004", name: "伊藤 三子", isDriver: false },
+     { id: "haru", name: "田中山羽琉", isDriver: true }
    ];
  
    // 要素

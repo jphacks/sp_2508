@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>予約管理</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f7f8fa;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #4bb74f;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.3rem;
+    }
+
+    #userInfo {
+      text-align: center;
+      padding: 0.5rem;
+      background: #ffffff;
+      font-size: 0.95rem;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      background-color: white;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .tab {
+      padding: 1rem 2rem;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .tab.active {
+      border-bottom: 3px solid #4bb752;
+      color: #3eb165;
+      font-weight: bold;
+    }
+
+    .tab-content {
+      display: none;
+      padding: 2rem;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .reservation-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .reservation-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .datetime, .route {
+      color: #555;
+      margin-bottom: 0.3rem;
+    }
+
+    .status {
+      font-size: 0.9rem;
+      color: #4bb754;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .move-button, .delete-button {
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: white;
+    }
+
+    .move-button {
+      background-color: #4bb766;
+    }
+
+    .move-button:hover {
+      background-color: #3ca676;
+    }
+
+    .delete-button {
+      background-color: #e74c3c;
+    }
+
+    .delete-button:hover {
+      background-color: #c0392b;
+    }
+
+    #reserveButton {
+      display: block;
+      width: 90%;
+      max-width: 400px;
+      margin: 1.5rem auto 1rem auto;
+      background-color: #4bb762;
+      color: white;
+      padding: 1rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    #reserveModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.3);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .modal-content label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .modal-buttons {
+      text-align: right;
+      margin-top: 1rem;
+    }
+
+    .modal-buttons button {
+      margin-left: 0.5rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .cancel-btn {
+      background-color: #ccc;
+    }
+
+    .submit-btn {
+      background-color: #4bb771;
+      color: white;
+    }
+
+    .reque{
+      font-size: 1.2rem;
+      margin-left: 7px;
+    }
+
+    .rese{
+      font-size: 1.2rem;
+      margin-left: 7px;
+    }
+
+    .ok{
+      font-size: 1.2rem;
+      margin-left: 7px;
+    }
+
+    .can{
+      font-size: 1.2rem;
+      margin-left: 30px;
+    }
+
+    .reservation-card{
+      background-color:#ececec;
+    }
+
+  </style>
+</head>
+<body>
+  <header>予約管理システム</header>
+
+  <div id="userInfo">ユーザー情報を読み込み中...</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="request"><spnn class="reque">🚗</spnn><br>依頼</div>
+    <div class="tab" data-tab="reserve"><spnn class="rese">📃</spnn><br>予約</div>
+    <div class="tab" data-tab="done"><spnn class="ok">✅</spnn><br>完了</div>
+    <div class="tab" data-tab="cancel"><spnn class="can">✖️</spnn><br>キャンセル</div>
+  </div>
+
+  <button id="reserveButton">＋ 新しい依頼を追加</button>
+
+  <div id="request" class="tab-content active">
+    <div id="requestList"><p>まだ依頼がありません。</p></div>
+  </div>
+  <div id="reserve" class="tab-content">
+    <div id="reserveList"><p>まだ予約がありません。</p></div>
+  </div>
+  <div id="done" class="tab-content">
+    <p>完了リストをここに表示します。</p>
+  </div>
+  <div id="cancel" class="tab-content">
+    <p>キャンセルリストをここに表示します。</p>
+  </div>
+
+  <div id="reserveModal">
+    <div class="modal-content">
+      <form id="reserveForm">
+        <h3>依頼を追加</h3>
+        <label>依頼主</label>
+        <input type="text" id="requester" required />
+        <label>ドライバー</label>
+        <input type="text" id="driver" required />
+        <label>日付</label>
+        <input type="date" id="date" required />
+        <label>時間</label>
+        <input type="time" id="time" required />
+        <label>出発地</label>
+        <input type="text" id="from" required />
+        <label>目的地</label>
+        <input type="text" id="to" required />
+        <div class="modal-buttons">
+          <button type="button" class="cancel-btn" id="closeModal">キャンセル</button>
+          <button type="submit" class="submit-btn">追加</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // --- ユーザー情報 ---
+    const profile = JSON.parse(localStorage.getItem("userProfile") || "null");
+    let name = "未設定";
+    let userId = "";
+    const userInfoDiv = document.getElementById("userInfo");
+
+    if (profile && profile.name && profile.id) {
+      name = profile.name;
+      userId = profile.id;
+      userInfoDiv.textContent = `ようこそ、${name} さん（ID: ${userId}）`;
+    } else {
+      userInfoDiv.textContent = "ユーザー情報が見つかりません。ログインページで登録してください。";
+    }
+
+    // --- タブ切替 ---
+    const tabs = document.querySelectorAll(".tab");
+    const contents = document.querySelectorAll(".tab-content");
+
+    const statusLabels = {
+      request: "依頼",
+      reserve: "予約",
+      done: "完了",
+      cancel: "キャンセル"
+    };
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("active"));
+        contents.forEach(c => c.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.tab).classList.add("active");
+      });
+    });
+
+    // --- モーダル処理 ---
+    const reserveButton = document.getElementById("reserveButton");
+    const reserveModal = document.getElementById("reserveModal");
+    const closeModal = document.getElementById("closeModal");
+    const form = document.getElementById("reserveForm");
+
+    reserveButton.addEventListener("click", () => {
+      reserveModal.style.display = "flex";
+    });
+    closeModal.addEventListener("click", () => {
+      reserveModal.style.display = "none";
+      form.reset();
+    });
+    window.addEventListener("click", (e) => {
+      if (e.target === reserveModal) {
+        reserveModal.style.display = "none";
+        form.reset();
+      }
+    });
+
+    // --- データ表示 ---
+    function loadReservations() {
+      const reservations = JSON.parse(localStorage.getItem("reservations") || "[]");
+      renderReservations(reservations);
+    }
+
+    function renderReservations(reservations) {
+      const lists = {
+        request: document.getElementById("requestList"),
+        reserve: document.getElementById("reserveList"),
+        done: document.getElementById("done"),
+        cancel: document.getElementById("cancel")
+      };
+      Object.values(lists).forEach(list => list.innerHTML = "");
+
+      // ✅ ログインユーザーに関係ある予約だけ表示
+      const filtered = reservations.filter(res =>
+        res.requester === name || res.driver === name
+      );
+
+      for (const res of filtered) {
+        const list = lists[res.status];
+        if (!list) continue;
+
+        const card = document.createElement("div");
+        card.className = "reservation-card";
+        card.innerHTML = `
+          <div class="reservation-header">
+            <span>${res.requester} → ${res.driver}</span>
+            <span class="status">${statusLabels[res.status]}</span>
+          </div>
+          <div class="datetime">${res.date}・${res.time}</div>
+          <div class="route">📍 ${res.from} → ${res.to}</div>
+        `;
+
+        if (res.driver === name) {
+          const buttonGroup = document.createElement("div");
+          buttonGroup.className = "button-group";
+
+          if (res.status === "request") {
+            const moveBtn = document.createElement("button");
+            moveBtn.className = "move-button";
+            moveBtn.textContent = "予約に移動";
+            moveBtn.onclick = () => moveToReserve(res);
+            buttonGroup.appendChild(moveBtn);
+          }
+
+          if (res.status === "reserve") {
+            const doneBtn = document.createElement("button");
+            doneBtn.className = "move-button";
+            doneBtn.textContent = "完了";
+            doneBtn.onclick = () => moveToDone(res);
+            buttonGroup.appendChild(doneBtn);
+          }
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "delete-button";
+          deleteBtn.textContent = "削除";
+          deleteBtn.onclick = () => deleteReservation(res);
+          buttonGroup.appendChild(deleteBtn);
+
+          card.appendChild(buttonGroup);
+        }
+
+        list.appendChild(card);
+      }
+
+      if (lists.request.innerHTML === "") lists.request.innerHTML = "<p>まだ依頼がありません。</p>";
+      if (lists.reserve.innerHTML === "") lists.reserve.innerHTML = "<p>まだ予約がありません。</p>";
+      if (lists.done.innerHTML === "") lists.done.innerHTML = "<p>完了リストをここに表示します。</p>";
+      if (lists.cancel.innerHTML === "") lists.cancel.innerHTML = "<p>キャンセルリストをここに表示します。</p>";
+    }
+
+    // --- 保存・削除・移動処理 ---
+    function saveReservations(reservations) {
+      localStorage.setItem("reservations", JSON.stringify(reservations));
+    }
+
+    function moveToReserve(target) {
+      const reservations = JSON.parse(localStorage.getItem("reservations") || "[]");
+      const updated = reservations.map(r =>
+        isSameReservation(r, target) ? { ...r, status: "reserve" } : r
+      );
+      saveReservations(updated);
+      renderReservations(updated);
+    }
+
+    function moveToDone(target) {
+      const reservations = JSON.parse(localStorage.getItem("reservations") || "[]");
+      const updated = reservations.map(r =>
+        isSameReservation(r, target) ? { ...r, status: "done" } : r
+      );
+      saveReservations(updated);
+      renderReservations(updated);
+    }
+
+    function deleteReservation(target) {
+      const reservations = JSON.parse(localStorage.getItem("reservations") || "[]");
+      const filtered = reservations.filter(r => !isSameReservation(r, target));
+      saveReservations(filtered);
+      renderReservations(filtered);
+    }
+
+    function isSameReservation(a, b) {
+      return (
+        a.requester === b.requester &&
+        a.driver === b.driver &&
+        a.date === b.date &&
+        a.time === b.time &&
+        a.from === b.from &&
+        a.to === b.to &&
+        a.status === b.status
+      );
+    }
+
+    // --- フォーム送信 ---
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const newRes = {
+        requester: document.getElementById("requester").value,
+        driver: document.getElementById("driver").value,
+        date: document.getElementById("date").value,
+        time: document.getElementById("time").value,
+        from: document.getElementById("from").value,
+        to: document.getElementById("to").value,
+        status: "request"
+      };
+      const reservations = JSON.parse(localStorage.getItem("reservations") || "[]");
+      reservations.push(newRes);
+      saveReservations(reservations);
+      renderReservations(reservations);
+      reserveModal.style.display = "none";
+      form.reset();
+    });
+
+    loadReservations();
+  </script>
+</body>
+</html>

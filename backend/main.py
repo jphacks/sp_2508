@@ -1,7 +1,23 @@
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+# 開発用 CORS 設定: フロントを http://127.0.0.1:8001 で配信するならそれを許可
+# 簡易に全許可するなら allow_origins=["*"] に変更可（本番では厳禁）
+app.add_middleware(
+    CORSMiddleware,
+    # 開発用: よく使うローカルホスト起動ポートを許可
+    allow_origins=[
+        "http://127.0.0.1:8001",  # python -m http.server で配信する例
+        "http://127.0.0.1:5500",  # VSCode Live Server 等
+        "http://localhost:5500",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 t_flag = False
 k_flag = False

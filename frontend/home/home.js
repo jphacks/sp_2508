@@ -2,6 +2,7 @@
 // 直近の利用予定を描画するスクリプト
 (function () {
   const STORAGE_KEY = "upcomingTrips";
+  const API_BASE = "http://127.0.0.1:8000";
 
   const SAMPLE_TRIPS = [
     {
@@ -151,8 +152,175 @@
     emptyEl.hidden = true;
     listEl.innerHTML = "";
     trips.forEach((t) => listEl.appendChild(renderTrip(t)));
-  }
 
+    // ----- 追加: 緊急要請ボタンのバインド -----
+    const urgentBtn = document.querySelector('.urgent-btn');
+    if (urgentBtn) {
+      urgentBtn.addEventListener('click', async () => {
+        const originalText = urgentBtn.textContent || '緊急依頼'; // 先に定義して finally で安全に参照
+        const raw = localStorage.getItem('userProfile');
+        if (!raw) {
+          alert('ユーザープロフィールが見つかりません。login ページでプロファイルを保存してください。');
+          return;
+        }
+        let profile;
+        try {
+          profile = JSON.parse(raw);
+        } catch (e) {
+          console.error('userProfile JSON parse error', e, raw);
+          alert('保存された userProfile が不正です。console を確認してください。');
+          return;
+        }
+        profile.car = false; // 要請者として送る
+
+        // デバッグ: 送信前に payload を出力
+        console.log('kinkyu payload ->', profile);
+        const body = JSON.stringify(profile);
+        console.log('kinkyu body string ->', body);
+
+        urgentBtn.disabled = true;
+        urgentBtn.textContent = '送信中…';
+        try {
+          const res = await fetch(API_BASE + '/kinkyu/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: body,
+          });
+          console.log('kinkyu response status', res.status, res.statusText);
+          const json = await res.json().catch(() => null);
+          console.log('kinkyu response json', json);
+          if (!res.ok) {
+            alert('送信エラー: HTTP ' + res.status + (json && json.error ? ' – ' + json.error : ''));
+          } else {
+            alert('緊急要請を送信しました。要請者ID: ' + (json?.user_id || profile.id));
+          }
+        } catch (e) {
+          console.error('fetch failed', e);
+          alert('送信に失敗しました（ネットワークエラー）');
+        } finally {
+          urgentBtn.disabled = false;
+          urgentBtn.textContent = originalText;
+        }
+      });
+    }
+    // ----- ここまで -----
+
+    // ----- 追加: ドライバーポーリング（localStorage の userProfile を参照） -----
+    let driverPollHandle = null;
+    const notifEl = document.getElementById('driverNotification');
+    const notifMsg = document.getElementById('driverNotificationMsg');
+    const acceptBtn = document.getElementById('driverAcceptBtn');
+    const declineBtn = document.getElementById('driverDeclineBtn');
+
+    function getStoredProfile() {
+      try {
+        const raw = localStorage.getItem('userProfile');
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function pollAsDriver(profile) {
+      if (!profile || !profile.car) return;
+      if (driverPollHandle) clearInterval(driverPollHandle);
+      // 初回即時実行して以降数秒ごとにポーリング
+      async function check() {
+        try {
+          const res = await fetch(API_BASE + '/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: profile.id, car: true }),
+          });
+          if (!res.ok) return;
+          const j = await res.json().catch(() => null);
+          if (j && j.waiting) {
+            // 緊急要請が待機中
+            showDriverNotification(j.user_id, j.type);
+          }
+        } catch (e) {
+          console.warn('driver poll failed', e);
+        }
+      }
+      check();
+      driverPollHandle = setInterval(check, 2500);
+    }
+
+    function showDriverNotification(requesterId, type) {
+      if (!notifEl || notifEl.classList.contains('show')) return;
+      notifMsg.textContent = requesterId ? `緊急要請: ${requesterId} さんが車を必要としています。受けますか？` : '緊急要請を受信しました。受けますか？';
+      notifEl.classList.add('show');
+    }
+
+    function hideDriverNotification() {
+      if (!notifEl) return;
+      notifEl.classList.remove('show');
+    }
+
+    // 受理ボタン: /accept/ を叩く
+    if (acceptBtn) {
+      acceptBtn.addEventListener('click', async () => {
+        const profile = getStoredProfile();
+        if (!profile || !profile.car) {
+          alert('ドライバープロフィールが見つかりません。プロフィールで car=true を設定してください。');
+          return;
+        }
+        acceptBtn.disabled = true;
+        acceptBtn.textContent = '受理中…';
+        try {
+          const res = await fetch(API_BASE + '/accept/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: profile.id, car: true }),
+          });
+          const j = await res.json().catch(() => null);
+          if (!res.ok) {
+            alert('受理エラー: HTTP ' + res.status + (j && j.error ? ' – ' + j.error : ''));
+          } else {
+            alert('受理しました。要請者: ' + (j?.for_user || '不明'));
+            hideDriverNotification();
+          }
+        } catch (e) {
+          console.error('accept failed', e);
+          alert('受理に失敗しました（ネットワークエラー）');
+        } finally {
+          acceptBtn.disabled = false;
+          acceptBtn.textContent = '受ける';
+        }
+      });
+    }
+
+    if (declineBtn) {
+      declineBtn.addEventListener('click', () => {
+        hideDriverNotification();
+      });
+    }
+
+    // ページ初期化時に localStorage を見てドライバーモードならポーリング開始
+    const initialProfile = getStoredProfile();
+    if (initialProfile && initialProfile.car) {
+      pollAsDriver(initialProfile);
+    }
+
+    // localStorage の変化を監視して動的に切り替え（別タブで変更されたとき対応）
+    window.addEventListener('storage', (ev) => {
+      if (ev.key !== 'userProfile') return;
+      const p = getStoredProfile();
+      if (p && p.car) {
+        pollAsDriver(p);
+      } else {
+        if (driverPollHandle) {
+          clearInterval(driverPollHandle);
+          driverPollHandle = null;
+        }
+        hideDriverNotification();
+      }
+    });
+    // ----- ドライバーポーリングここまで -----
+
+  }
+  
   // 初期化
   document.addEventListener("DOMContentLoaded", init);
 })();

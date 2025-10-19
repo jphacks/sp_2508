@@ -53,21 +53,24 @@
 /* ページレベル: タイトル行とアクション */
 .title-row {
   display:flex;
+  top: 0;
   align-items:center;
   justify-content:space-between;
   gap:0.75rem;
-  margin-bottom:0.75rem;
+ 
 }
 .title-row .actions {
   display:inline-flex;
   align-items:center;
+  margin-bottom: 60px;
+  margin-right: 18px;
   gap:0.5rem;
 }
 
 .ti{
-   padding: 0.5em 1em;
+   padding: 0.5em 1.3em;
     margin: 2em 0;
-    margin-bottom: 10px;
+    margin-bottom: 60px;
     color: #232323;
     background: #e8ffef;
     border-left: solid 10px #6eff9c;
@@ -100,4 +103,15 @@ color: rgb(50, 143, 50);
 
 .actions button:hover{
   background-color: rgb(217, 217, 217);
+}
+
+.btn-alert{
+ 
+  top: 30px;
+  right: 40px;
+  margin-top: 20px;
+  font-size: 1.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
 }

@@ -2,7 +2,10 @@
 
 ![ロゴ](https://raw.githubusercontent.com/Yasunori11/image/refs/heads/main/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88%202025-10-19%20140009.png)
 
-[![](https://img.youtube.com/vi/HnCDzmP1IVQ/0.jpg)](https://www.youtube.com/watch?v=HnCDzmP1IVQ)
+動画  
+https://github.com/user-attachments/assets/e58370b6-068c-4151-83cc-1167c84cb3ae
+
+[動画リンク](https://www.youtube.com/watch?v=HnCDzmP1IVQ)
 
 ## 製品概要
 ### 背景(製品開発のきっかけ、課題等）

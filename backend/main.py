@@ -25,6 +25,9 @@ async def root(user: dict):
     - 緊急は waiting 中か受理確認、予約は pending/accepted を返す
     受理確認後はリクエストをリセットします（どちらも同様）。
     """
+    # global は関数内で変数を参照・更新する前に宣言しておく
+    global t_flag, k_flag, y_flag
+
     uid = user.get("id")
     car = bool(user.get("car", False))
 
@@ -56,7 +59,6 @@ async def root(user: dict):
                 accepted_by = current_request["accepted_by"]
                 # リクエストとフラグをリセット
                 current_request.update({"type": None, "user_id": None, "waiting": False, "accepted_by": None})
-                global t_flag, k_flag, y_flag
                 t_flag, k_flag, y_flag = False, False, False
                 return {"status": "accepted", "accepted_by": accepted_by}
             # 自分の要請があるが未受理：緊急なら waiting、予約なら pending を返す

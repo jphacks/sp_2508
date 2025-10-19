@@ -110,12 +110,13 @@ body {
     }
 
     .car-color {
-        display: inline-block;
-  background-color: rgb(20, 153, 255); /* 背景色 */
-  margin-top: 18px;
-  margin-right: 400px;
   
-  border-radius: 15px;
+  }
+
+.car-color-background{
+   background-color: rgb(55, 162, 86); /* 背景色 */
+  border-radius: 5px;
+  padding: 2px 6px;
   color: white;
 }
 

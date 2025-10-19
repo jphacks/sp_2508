@@ -118,6 +118,9 @@ async def accept(user: dict):
     body 例: {"id": "@driver", "car": True}
     緊急・予約どちらでも受理可能。受理後 accepted_by をセットし waiting を False にする。
     """
+    # global は参照・変更する前に関数先頭で宣言する
+    global current_request, t_flag, k_flag
+
     driver_id = user.get("id")
     car = bool(user.get("car", False))
     if not car:
@@ -127,7 +130,6 @@ async def accept(user: dict):
         return {"error": "no current request"}
 
     # 受理処理
-    global current_request, t_flag, k_flag
     current_request["accepted_by"] = driver_id
     current_request["waiting"] = False
     t_flag = True

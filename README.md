@@ -1,7 +1,7 @@
 # のりとも
 
-[![IMAGE ALT TEXT HERE](<img width="1535" height="902" alt="image" src="https://github.com/Yasunori11/image/blob/main/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88%202025-10-19%20140009.png" />
-)
+![ロゴ](https://raw.githubusercontent.com/Yasunori11/image/refs/heads/main/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88%202025-10-19%20140009.png)
+
 
 ## 製品概要
 ### 背景(製品開発のきっかけ、課題等）

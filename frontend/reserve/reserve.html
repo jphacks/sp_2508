@@ -20,6 +20,15 @@
       font-size: 1.3rem;
     }
 
+    #userInfo {
+      text-align: center;
+      padding: 0.5rem;
+      background: #ffffff;
+      font-size: 0.95rem;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+    }
+
     .tabs {
       display: flex;
       justify-content: center;
@@ -179,6 +188,9 @@
 <body>
   <header>予約管理システム</header>
 
+  <!-- 👇 ローカルストレージのnameとidを表示する欄 -->
+  <div id="userInfo">ユーザー情報を読み込み中...</div>
+
   <div class="tabs">
     <div class="tab active" data-tab="request">依頼</div>
     <div class="tab" data-tab="reserve">予約</div>
@@ -226,8 +238,22 @@
   </div>
 
   <script>
-    const name = "オホーツク";
+    // ✅ ローカルストレージからユーザー情報を取得
+    const profile = JSON.parse(localStorage.getItem("userProfile") || "null");
+    let name = "未設定";
+    let userId = "";
 
+    const userInfoDiv = document.getElementById("userInfo");
+
+    if (profile && profile.name && profile.id) {
+      name = profile.name;
+      userId = profile.id;
+      userInfoDiv.textContent = `ようこそ、${name} さん（ID: ${userId}）`;
+    } else {
+      userInfoDiv.textContent = "ユーザー情報が見つかりません。ログインページで登録してください。";
+    }
+
+    // --- 以下、もとの予約管理処理 ---
     const tabs = document.querySelectorAll(".tab");
     const contents = document.querySelectorAll(".tab-content");
 
@@ -295,6 +321,7 @@
           <div class="route">📍 ${res.from} → ${res.to}</div>
         `;
 
+        // ✅ ローカルストレージから取得したnameを使用
         if (res.driver === name) {
           const buttonGroup = document.createElement("div");
           buttonGroup.className = "button-group";

@@ -1,7 +1,23 @@
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+# 開発用 CORS 設定: フロントを http://127.0.0.1:8001 で配信するならそれを許可
+# 簡易に全許可するなら allow_origins=["*"] に変更可（本番では厳禁）
+app.add_middleware(
+    CORSMiddleware,
+    # 開発用: よく使うローカルホスト起動ポートを許可
+    allow_origins=[
+        "http://127.0.0.1:8001",  # python -m http.server で配信する例
+        "http://127.0.0.1:5500",  # VSCode Live Server 等
+        "http://localhost:5500",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 t_flag = False
 k_flag = False
@@ -25,6 +41,9 @@ async def root(user: dict):
     - 緊急は waiting 中か受理確認、予約は pending/accepted を返す
     受理確認後はリクエストをリセットします（どちらも同様）。
     """
+    # global は関数内で変数を参照・更新する前に宣言しておく
+    global t_flag, k_flag, y_flag, current_request
+
     uid = user.get("id")
     car = bool(user.get("car", False))
 
@@ -35,34 +54,31 @@ async def root(user: dict):
                 "waiting": True,
                 "type": current_request["type"],
                 "user_id": current_request["user_id"],
-                "t_flag": t_flag,
-                "k_flag": k_flag,
-                "y_flag": y_flag,
             }
         if current_request["type"] == "yoyaku":
             return {
                 "waiting": False,
-                "type": current_request["type"],
+                "type": "yoyaku",
                 "user_id": current_request["user_id"],
-                "t_flag": t_flag,
-                "k_flag": k_flag,
-                "y_flag": y_flag,
             }
         return {"waiting": False, "type": None}
     else:
         # 要請者は自分の要請が受理されたか確認する
         if current_request["user_id"] == uid:
-            if current_request["accepted_by"]:
+            # 受理済みの場合は accepted を返して状態をリセット
+            if current_request.get("accepted_by"):
                 accepted_by = current_request["accepted_by"]
-                # リクエストとフラグをリセット
+                # リクエストをクリアして処理を再開できるようにする
                 current_request.update({"type": None, "user_id": None, "waiting": False, "accepted_by": None})
-                global t_flag, k_flag, y_flag
-                t_flag, k_flag, y_flag = False, False, False
+                t_flag = False
+                k_flag = False
+                y_flag = False
                 return {"status": "accepted", "accepted_by": accepted_by}
-            # 自分の要請があるが未受理：緊急なら waiting、予約なら pending を返す
-            if current_request["type"] == "kinkyu" and current_request["waiting"]:
+            # 緊急でドライバー応答待ち
+            if current_request.get("waiting"):
                 return {"status": "waiting"}
-            if current_request["type"] == "yoyaku":
+            # 予約は承認待ち（pending）
+            if current_request.get("type") == "yoyaku":
                 return {"status": "pending"}
         # 自分の要請がない（または別の要請が流れている）
         return {"status": "none"}
@@ -116,6 +132,9 @@ async def accept(user: dict):
     body 例: {"id": "@driver", "car": True}
     緊急・予約どちらでも受理可能。受理後 accepted_by をセットし waiting を False にする。
     """
+    # global は参照・変更する前に関数先頭で宣言する
+    global current_request, t_flag, k_flag
+
     driver_id = user.get("id")
     car = bool(user.get("car", False))
     if not car:
@@ -125,7 +144,6 @@ async def accept(user: dict):
         return {"error": "no current request"}
 
     # 受理処理
-    global current_request, t_flag, k_flag
     current_request["accepted_by"] = driver_id
     current_request["waiting"] = False
     t_flag = True

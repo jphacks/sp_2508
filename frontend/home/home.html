@@ -1,67 +1,178 @@
 <!DOCTYPE html>
 <html lang="ja">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>のりとも | 直近の利用予定</title>
-        <link rel="stylesheet" href="../main.css" />
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>のりとも | 直近の利用予定</title>
+    <link rel="stylesheet" href="../main.css" />
     <link rel="stylesheet" href="./home.css" />
-        <style>
-            .page-wrap { max-width: 960px; margin: 0 auto; padding: 16px; }
-            .page-title { font-size: 1.5rem; margin: 8px 0 16px; }
-            .section-title { font-size: 1.25rem; margin: 0 0 12px; }
-            .section-desc { color: #555; font-size: 0.95rem; margin: 0 0 16px; }
-            .actions-row { display: flex; gap: 8px; align-items: center; }
-            .btn-link { color: #0bd812; text-decoration: none; font-weight: 600; }
-            .btn-link:hover { text-decoration: underline; }
-        </style>
-    </head>
-    <body>
-        <main class="page-wrap">
-            <header style="position: relative;">
-                <div class="icon">
-                    <img src="icon.png" width="50" height="50">
-                    <h1 class="page-title"><span>のりとも</span></h1>
-                
-                </div>
-                <button class="btn-alert">🔔</button>
-                
-               
-            </header>
+    <style>
+      .page-wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+      .page-title {
+        font-size: 1.5rem;
+        margin: 8px 0 16px;
+      }
+      .section-title {
+        font-size: 1.25rem;
+        margin: 0 0 12px;
+      }
+      .section-desc {
+        color: #555;
+        font-size: 0.95rem;
+        margin: 0 0 16px;
+      }
+      .actions-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .btn-link {
+        color: #0bd812;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .btn-link:hover {
+        text-decoration: underline;
+      }
 
-            <!-- 緊急依頼カード -->
-            <section id="urgent-request" aria-label="緊急依頼" style="margin-bottom: 24px;">
-                <div class="urgent-card">
-                    <div class="urgent-card-left">
-                        <div class="urgent-title">緊急で車が必要ですか？</div>
-                        <div class="urgent-desc">車を持っているフレンド全員に通知を送信します</div>
-                    </div>
-                    <div class="urgent-card-right">
-                        <button class="urgent-btn" type="button" aria-label="緊急依頼">
-                            <!-- エクスクラメーション（!）アイコン -->
-                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                <path d="M11 6h2v7h-2V6zm0 9h2v2h-2v-2z" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </section>
-            <!-- 直近の予定 -->
-            <section id="upcoming" aria-labelledby="upcoming-title">
-                <div class="actions-row" style="justify-content: space-between; margin-bottom: 8px;">
-                    <h2 id="upcoming-title" class="section-title">直近の予定</h2>
-                    <a class="btn-link" href="../reserve/reserve.html">すべての予約を見る</a>
-                </div>
-                <div id="upcoming-empty" class="upcoming-empty" hidden>
-                    <p>直近の利用予定はありません。<a class="btn-link" href="../index.html">近くの車を探す</a></p>
-                </div>
-                <ul id="upcoming-list" class="upcoming-list" aria-live="polite"></ul>
-            </section>
-        </main>
+      /* ドライバー通知用（緊急受信） */
+      .driver-notification {
+        position: fixed;
+        left: 16px;
+        right: 16px;
+        bottom: 24px;
+        background: linear-gradient(180deg, #fff, #f8fbff);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        box-shadow: 0 8px 24px rgba(20, 30, 40, 0.08);
+        padding: 12px;
+        border-radius: 12px;
+        display: none;
+        align-items: center;
+        gap: 12px;
+        z-index: 1200;
+      }
+      .driver-notification.show {
+        display: flex;
+      }
+      .driver-notification .msg {
+        flex: 1;
+        font-weight: 600;
+        color: #111;
+      }
+      .driver-notification .controls {
+        display: flex;
+        gap: 8px;
+      }
+      .driver-notification button {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 0;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .driver-notification .accept {
+        background: #0bd812;
+        color: #fff;
+      }
+      .driver-notification .decline {
+        background: #efefef;
+        color: #111;
+        border: 1px solid #ddd;
+      }
+      .urgent-status {
+        margin-top: 8px;
+        font-weight: 700;
+        color: #0b8aee;
+        background: rgba(11, 138, 238, 0.06);
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+      }
+      .urgent-status.accepted {
+        color: #0bd812;
+        background: rgba(11, 216, 18, 0.06);
+      }
+      .urgent-status.waiting {
+        color: #ff8a00;
+        background: rgba(255, 138, 0, 0.06);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page-wrap">
+      <header style="position: relative">
+        <div class="icon">
+          <img src="icon.png" width="50" height="50" />
+          <h1 class="page-title"><span>のりとも</span></h1>
+        </div>
+      </header>
+
+      <!-- ドライバー向けの緊急通知（表示は JS 制御） -->
+      <div
+        id="driverNotification"
+        class="driver-notification"
+        role="dialog"
+        aria-live="polite"
+        style="display:none;"
+      >
+        <div class="msg" id="driverNotificationMsg">緊急要請を受信しました</div>
+        <div class="controls">
+          <button id="driverAcceptBtn" class="accept">受ける</button>
+          <button id="driverDeclineBtn" class="decline">無視</button>
+        </div>
+      </div>
+
+      <!-- 緊急依頼カード -->
+      <section
+        id="urgent-request"
+        aria-label="緊急依頼"
+        style="margin-bottom: 24px;"
+      >
+        <div class="urgent-card">
+          <div class="urgent-card-left">
+            <div class="urgent-title">緊急で車が必要ですか？</div>
+            <div class="urgent-desc">
+              車を持っているフレンド全員に通知を送信します
+            </div>
+          </div>
+          <div class="urgent-card-right">
+            <button class="urgent-btn" type="button" aria-label="緊急依頼">
+              <!-- エクスクラメーション（!）アイコン -->
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M11 6h2v7h-2V6zm0 9h2v2h-2v-2z" />
+              </svg>
+            </button>
+            <!-- 追加: 要請状態表示（要請者側に受理状況を見せる） -->
+            <div id="urgentStatus" class="urgent-status" aria-live="polite" hidden></div>
+          </div>
+        </div>
+      </section>
+      <!-- 直近の予定 -->
+      <section id="upcoming" aria-labelledby="upcoming-title">
+        <div
+          class="actions-row"
+          style="justify-content: space-between; margin-bottom: 8px"
+        >
+          <h2 id="upcoming-title" class="section-title">直近の予定</h2>
+          <a class="btn-link" href="../bookings.html">すべての予約を見る</a>
+        </div>
+        <div id="upcoming-empty" class="upcoming-empty" hidden>
+          <p>
+            直近の利用予定はありません。<a class="btn-link" href="../index.html"
+              >近くの車を探す</a
+            >
+          </p>
+        </div>
+        <ul id="upcoming-list" class="upcoming-list" aria-live="polite"></ul>
+      </section>
+    </main>
 
     <!-- 共通フッター（下部スマホナビに置き換え） -->
     <footer id="site-footer" role="contentinfo">
-
       <nav
         class="mobile-bottom-nav"
         role="navigation"
@@ -141,5 +252,5 @@
       </nav>
     </footer>
     <script src="./home.js" defer></script>
-    </body>
+  </body>
 </html>

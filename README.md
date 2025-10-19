@@ -1,6 +1,7 @@
-# サンプル（プロダクト名）
+# のりとも
 
-[![IMAGE ALT TEXT HERE](https://jphacks.com/wp-content/uploads/2025/05/JPHACKS2025_ogp.jpg)](https://www.youtube.com/watch?v=lA9EluZugD8)
+[![IMAGE ALT TEXT HERE](<img width="1535" height="902" alt="image" src="https://github.com/user-attachments/assets/b77013bb-1ed7-46eb-8889-cc106ef7849a" />
+)
 
 ## 製品概要
 ### 背景(製品開発のきっかけ、課題等）

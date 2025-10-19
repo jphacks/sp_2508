@@ -120,7 +120,7 @@
       display: block;
       width: 90%;
       max-width: 400px;
-      margin: 2rem auto;
+      margin: 1.5rem auto 1rem auto;
       background-color: #4b6cb7;
       color: white;
       padding: 1rem;
@@ -188,7 +188,6 @@
 <body>
   <header>予約管理システム</header>
 
-  <!-- 👇 ローカルストレージのnameとidを表示する欄 -->
   <div id="userInfo">ユーザー情報を読み込み中...</div>
 
   <div class="tabs">
@@ -197,6 +196,8 @@
     <div class="tab" data-tab="done">完了</div>
     <div class="tab" data-tab="cancel">キャンセル</div>
   </div>
+
+  <button id="reserveButton">＋ 新しい依頼を追加</button>
 
   <div id="request" class="tab-content active">
     <div id="requestList"><p>まだ依頼がありません。</p></div>
@@ -210,8 +211,6 @@
   <div id="cancel" class="tab-content">
     <p>キャンセルリストをここに表示します。</p>
   </div>
-
-  <button id="reserveButton">＋ 新しい依頼を追加</button>
 
   <div id="reserveModal">
     <div class="modal-content">
@@ -238,11 +237,10 @@
   </div>
 
   <script>
-    // ✅ ローカルストレージからユーザー情報を取得
+    // --- ユーザー情報 ---
     const profile = JSON.parse(localStorage.getItem("userProfile") || "null");
     let name = "未設定";
     let userId = "";
-
     const userInfoDiv = document.getElementById("userInfo");
 
     if (profile && profile.name && profile.id) {
@@ -253,7 +251,7 @@
       userInfoDiv.textContent = "ユーザー情報が見つかりません。ログインページで登録してください。";
     }
 
-    // --- 以下、もとの予約管理処理 ---
+    // --- タブ切替 ---
     const tabs = document.querySelectorAll(".tab");
     const contents = document.querySelectorAll(".tab-content");
 
@@ -273,6 +271,7 @@
       });
     });
 
+    // --- モーダル処理 ---
     const reserveButton = document.getElementById("reserveButton");
     const reserveModal = document.getElementById("reserveModal");
     const closeModal = document.getElementById("closeModal");
@@ -292,6 +291,7 @@
       }
     });
 
+    // --- データ表示 ---
     function loadReservations() {
       const reservations = JSON.parse(localStorage.getItem("reservations") || "[]");
       renderReservations(reservations);
@@ -306,7 +306,12 @@
       };
       Object.values(lists).forEach(list => list.innerHTML = "");
 
-      for (const res of reservations) {
+      // ✅ ログインユーザーに関係ある予約だけ表示
+      const filtered = reservations.filter(res =>
+        res.requester === name || res.driver === name
+      );
+
+      for (const res of filtered) {
         const list = lists[res.status];
         if (!list) continue;
 
@@ -321,7 +326,6 @@
           <div class="route">📍 ${res.from} → ${res.to}</div>
         `;
 
-        // ✅ ローカルストレージから取得したnameを使用
         if (res.driver === name) {
           const buttonGroup = document.createElement("div");
           buttonGroup.className = "button-group";
@@ -360,6 +364,7 @@
       if (lists.cancel.innerHTML === "") lists.cancel.innerHTML = "<p>キャンセルリストをここに表示します。</p>";
     }
 
+    // --- 保存・削除・移動処理 ---
     function saveReservations(reservations) {
       localStorage.setItem("reservations", JSON.stringify(reservations));
     }
@@ -401,6 +406,7 @@
       );
     }
 
+    // --- フォーム送信 ---
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const newRes = {
